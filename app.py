@@ -49,10 +49,12 @@ async def synthesize(
         if not body.text or not body.text.strip():
             raise HTTPException(status_code=400, detail="Text required")
 
-        options = {"text": body.text}
-        response = deepgram.speak.rest.v("1").stream_raw(options, {"model": model})
-        
-        audio_data = b"".join(response.stream)
+        audio_generator = deepgram.speak.v1.audio.generate(
+            text=body.text,
+            model=model
+        )
+
+        audio_data = b"".join(audio_generator)
         
         headers = {"Content-Type": "audio/mpeg"}
         if x_request_id:
