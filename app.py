@@ -17,6 +17,12 @@ import toml
 
 load_dotenv(override=False)
 
+CONFIG = {
+    "port": int(os.environ.get("PORT", 8081)),
+    "host": os.environ.get("HOST", "0.0.0.0"),
+    "frontend_port": int(os.environ.get("FRONTEND_PORT", 8080)),
+}
+
 def load_api_key():
     api_key = os.environ.get("DEEPGRAM_API_KEY")
     if not api_key:
@@ -29,7 +35,10 @@ deepgram = DeepgramClient(api_key=api_key)
 app = FastAPI(title="Deepgram TTS API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        f"http://localhost:{CONFIG['frontend_port']}",
+        f"http://127.0.0.1:{CONFIG['frontend_port']}",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,11 +84,7 @@ async def get_metadata():
     except:
         raise HTTPException(status_code=500, detail="Metadata read failed")
 
-app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="static")
-
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8080))
-    print(f"\n🚀 FastAPI TTS Server: http://localhost:{port}")
-    print(f"📚 Docs: http://localhost:{port}/docs\n")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    print(f"\n🚀 FastAPI TTS Server: http://localhost:{CONFIG['port']}\n")
+    uvicorn.run(app, host=CONFIG["host"], port=CONFIG["port"])
