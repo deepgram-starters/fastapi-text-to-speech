@@ -6,8 +6,9 @@ Simple TTS API endpoint returning binary audio data.
 
 import os
 from typing import Optional
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import Response, JSONResponse
+from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -43,6 +44,38 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Exception handlers to ensure contract-compliant error responses
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Convert HTTPException to contract format"""
+    if isinstance(exc.detail, dict) and "error" in exc.detail:
+        return JSONResponse(status_code=exc.status_code, content=exc.detail)
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "type": "SynthesisError",
+                "code": "SYNTHESIS_FAILED",
+                "message": str(exc.detail)
+            }
+        }
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors"""
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": {
+                "type": "ValidationError",
+                "code": "INVALID_INPUT",
+                "message": "Invalid request"
+            }
+        }
+    )
 
 class TTSRequest(BaseModel):
     text: str
