@@ -106,6 +106,21 @@ async def synthesize(
 
     except Exception as e:
         print(f"TTS Error: {e}")
+        error_msg = str(e).lower()
+
+        # Check if it's a Deepgram text length error
+        if any(keyword in error_msg for keyword in ['too long', 'length', 'limit', 'exceed']):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": {
+                        "type": "ValidationError",
+                        "code": "TEXT_TOO_LONG",
+                        "message": "Text exceeds maximum allowed length"
+                    }
+                }
+            )
+
         raise HTTPException(status_code=500, detail="TTS synthesis failed")
 
 @app.get("/api/metadata")
