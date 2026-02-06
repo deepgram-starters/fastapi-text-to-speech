@@ -5,8 +5,7 @@ Simple TTS API endpoint returning binary audio data.
 """
 
 import os
-from typing import Optional
-from fastapi import FastAPI, HTTPException, Header, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response, JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
@@ -83,8 +82,7 @@ class TTSRequest(BaseModel):
 @app.post("/tts/synthesize")
 async def synthesize(
     body: TTSRequest,
-    model: str = "aura-asteria-en",
-    x_request_id: Optional[str] = Header(None)
+    model: str = "aura-asteria-en"
 ):
     """POST /tts/synthesize - Convert text to speech"""
     try:
@@ -98,11 +96,7 @@ async def synthesize(
 
         audio_data = b"".join(audio_generator)
         
-        headers = {"Content-Type": "audio/mpeg"}
-        if x_request_id:
-            headers["X-Request-Id"] = x_request_id
-        
-        return Response(content=audio_data, media_type="audio/mpeg", headers=headers)
+        return Response(content=audio_data, media_type="audio/mpeg")
 
     except Exception as e:
         print(f"TTS Error: {e}")
