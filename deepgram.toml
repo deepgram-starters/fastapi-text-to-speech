@@ -3,10 +3,11 @@ title = "FastAPI Text-to-Speech"
 description = "Get started using Deepgram's Text-to-Speech with this FastAPI demo app"
 author = "Deepgram DX Team <devrel@deepgram.com> (https://developers.deepgram.com)"
 repository = "https://github.com/deepgram-starters/fastapi-text-to-speech"
-useCase = "Text-to-Speech"
-language = "Python"
-framework = "FastAPI"
+useCase = "text-to-speech"
+language = "python"
+framework = "fastapi"
 sdk = "5.3.2"
+tags = ["text-to-speech", "tts", "speech-synthesis", "python", "fastapi"]
 
 [install.pre]
 command = ["git submodule update --init --recursive", "python3 -m venv venv"]
