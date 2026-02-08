@@ -2,6 +2,8 @@
 FastAPI Text-to-Speech Starter
 
 Simple TTS API endpoint returning binary audio data.
+
+Key endpoint: POST /api/text-to-speech
 """
 
 import os
@@ -20,7 +22,6 @@ load_dotenv(override=False)
 CONFIG = {
     "port": int(os.environ.get("PORT", 8081)),
     "host": os.environ.get("HOST", "0.0.0.0"),
-    "frontend_port": int(os.environ.get("FRONTEND_PORT", 8080)),
 }
 
 def load_api_key():
@@ -35,11 +36,7 @@ deepgram = DeepgramClient(api_key=api_key)
 app = FastAPI(title="Deepgram TTS API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        f"http://localhost:{CONFIG['frontend_port']}",
-        f"http://127.0.0.1:{CONFIG['frontend_port']}",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -79,12 +76,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 class TTSRequest(BaseModel):
     text: str
 
-@app.post("/tts/synthesize")
+@app.post("/api/text-to-speech")
 async def synthesize(
     body: TTSRequest,
     model: str = "aura-asteria-en"
 ):
-    """POST /tts/synthesize - Convert text to speech"""
+    """POST /api/text-to-speech - Convert text to speech"""
     try:
         if not body.text or not body.text.strip():
             raise HTTPException(status_code=400, detail="Text required")
@@ -128,5 +125,7 @@ async def get_metadata():
 
 if __name__ == "__main__":
     import uvicorn
-    print(f"\n🚀 FastAPI TTS Server: http://localhost:{CONFIG['port']}\n")
+    print(f"\n🚀 FastAPI TTS Server starting on {CONFIG['host']}:{CONFIG['port']}")
+    print(f"   POST /api/text-to-speech - Convert text to speech")
+    print(f"   GET  /api/metadata - Get project metadata\n")
     uvicorn.run(app, host=CONFIG["host"], port=CONFIG["port"])
